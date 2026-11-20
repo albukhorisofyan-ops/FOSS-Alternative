@@ -1,3 +1,16 @@
+# AlterFOSS
+
+Direktori alternatif open source untuk perangkat lunak berbayar, lengkap dengan informasi
+lisensi, panduan migrasi, dan kalkulator penghematan biaya.
+
+Proyek akhir mata kuliah Open Source, Program Studi Sistem Informasi UINSI Samarinda.
+
+## Status
+Tahap inisiasi (P14). Implementasi dikerjakan pada P15.
+
+## Lisensi
+Kode: MIT (lihat `LICENSE`). Data direktori: CC BY-SA 4.0.
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
