@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Suggestion;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SuggestionController extends Controller
@@ -45,5 +46,35 @@ class SuggestionController extends Controller
         return redirect()
             ->route('suggestions.create')
             ->with('status', 'Terima kasih! Usulan Anda sudah kami terima dan akan ditinjau admin.');
+    }
+
+    /**
+     * Tampilkan daftar usulan untuk admin.
+     */
+    public function index(): View
+    {
+        $suggestions = Suggestion::latest()->paginate(15);
+
+        return view('admin.suggestions.index', ['suggestions' => $suggestions]);
+    }
+
+    /**
+     * Setujui atau tolak usulan.
+     */
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['approved', 'rejected'])],
+        ], [
+            'status.required' => 'Status wajib dipilih.',
+            'status.in' => 'Status hanya boleh disetujui atau ditolak.',
+        ]);
+
+        $suggestion = Suggestion::findOrFail($id);
+        $suggestion->update(['status' => $validated['status']]);
+
+        return redirect()
+            ->route('admin.suggestions.index')
+            ->with('status', 'Status usulan berhasil diperbarui.');
     }
 }

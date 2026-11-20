@@ -20,4 +20,7 @@ Route::post('/saran', [SuggestionController::class, 'store'])->name('suggestions
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::redirect('/', '/admin/software')->name('home');
     Route::resource('software', SoftwareController::class)->except('show');
+
+    Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
+    Route::patch('/suggestions/{id}', [SuggestionController::class, 'update'])->name('suggestions.update');
 });
