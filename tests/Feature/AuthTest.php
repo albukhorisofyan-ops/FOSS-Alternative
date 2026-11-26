@@ -28,7 +28,7 @@ class AuthTest extends TestCase
         ]);
 
         $this->assertAuthenticatedAs($user);
-        $response->assertRedirect(route('admin.home'));
+        $response->assertRedirect(route('admin.software.index'));
     }
 
     public function test_wrong_password_is_rejected_and_email_is_kept(): void

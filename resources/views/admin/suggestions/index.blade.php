@@ -1,87 +1,90 @@
 @extends('layouts.app')
 
-@section('title', 'Usulan Masuk')
+@section('title', 'Moderasi Usulan - Admin AlterFOSS')
 
 @section('content')
-    <h1 class="h3 mb-3">Usulan Masuk</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1" style="letter-spacing: -0.02em;">
+            <i class="bi bi-inbox text-primary me-2"></i>Moderasi Usulan Alternatif
+        </h1>
+        <p class="text-secondary small mb-0">Tinjau usulan alternatif open source yang dikirimkan oleh pengunjung.</p>
+    </div>
+    <a href="{{ route('admin.software.index') }}" class="af-btn af-btn-outline text-decoration-none">
+        <i class="bi bi-gear me-1"></i>Kelola Software
+    </a>
+</div>
 
-    @include('admin._nav')
-
+<div class="af-card-static overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead>
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
                 <tr>
-                    <th scope="col">Alternatif</th>
-                    <th scope="col">Menggantikan</th>
-                    <th scope="col">Situs</th>
-                    <th scope="col">Catatan</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Dikirim</th>
-                    <th scope="col" class="text-end">Aksi</th>
+                    <th class="ps-4">Alternatif Diusulkan</th>
+                    <th>Menggantikan</th>
+                    <th>Catatan</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Moderasi</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($suggestions as $suggestion)
-                    @php
-                        $status = [
-                            'pending' => ['Menunggu', 'secondary'],
-                            'approved' => ['Disetujui', 'success'],
-                            'rejected' => ['Ditolak', 'danger'],
-                        ][$suggestion->status] ?? [ucfirst($suggestion->status), 'secondary'];
-                    @endphp
+                @forelse ($suggestions as $item)
                     <tr>
-                        <td class="fw-semibold">{{ $suggestion->name }}</td>
-                        <td>{{ $suggestion->proprietary_name }}</td>
-                        <td>
-                            @if ($suggestion->website)
-                                <a href="{{ $suggestion->website }}" target="_blank" rel="noopener">Kunjungi</a>
-                            @else
-                                <span class="text-muted">&mdash;</span>
+                        <td class="ps-4">
+                            <div class="fw-semibold">{{ $item->name }}</div>
+                            @if ($item->website)
+                                <a href="{{ $item->website }}" target="_blank" rel="noopener" class="small text-decoration-none">
+                                    {{ $item->website }} <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
                             @endif
                         </td>
-                        <td class="small">
-                            {{ $suggestion->note ? \Illuminate\Support\Str::limit($suggestion->note, 80) : '—' }}
-                        </td>
+                        <td class="text-secondary">{{ $item->proprietary_name }}</td>
+                        <td class="small text-secondary" style="max-width: 280px;">{{ $item->note ?: '—' }}</td>
                         <td>
-                            <span class="badge text-bg-{{ $status[1] }}">{{ $status[0] }}</span>
+                            @if ($item->status === 'approved')
+                                <span class="af-badge af-badge-green">Disetujui</span>
+                            @elseif ($item->status === 'rejected')
+                                <span class="af-badge" style="background: #fee2e2; color: #991b1b;">Ditolak</span>
+                            @else
+                                <span class="af-badge" style="background: #fef3c7; color: #92400e;">Pending</span>
+                            @endif
                         </td>
-                        <td class="small text-nowrap">{{ $suggestion->created_at?->format('d/m/Y H:i') }}</td>
-                        <td class="text-end text-nowrap">
-                            @if ($suggestion->status !== 'approved')
-                                <form
-                                    method="POST"
-                                    action="{{ route('admin.suggestions.update', $suggestion->id) }}"
-                                    class="d-inline"
-                                >
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex gap-2">
+                                <form method="POST" action="{{ route('admin.suggestions.update', $item) }}">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="btn btn-sm btn-success">Setujui</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check-lg me-1"></i>Setujui
+                                    </button>
                                 </form>
-                            @endif
-
-                            @if ($suggestion->status !== 'rejected')
-                                <form
-                                    method="POST"
-                                    action="{{ route('admin.suggestions.update', $suggestion->id) }}"
-                                    class="d-inline"
-                                >
+                                <form method="POST" action="{{ route('admin.suggestions.update', $item) }}">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="status" value="rejected">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Tolak</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-lg me-1"></i>Tolak
+                                    </button>
                                 </form>
-                            @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Belum ada usulan masuk.</td>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            Belum ada usulan alternatif yang masuk.
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+</div>
 
-    {{ $suggestions->links('pagination::bootstrap-5') }}
+@if ($suggestions->hasPages())
+    <div class="d-flex justify-content-center mt-4">
+        {{ $suggestions->links() }}
+    </div>
+@endif
 @endsection

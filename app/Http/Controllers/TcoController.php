@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProprietarySoftware;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class TcoController extends Controller
@@ -17,88 +15,63 @@ class TcoController extends Controller
     {
         $softwareList = ProprietarySoftware::orderBy('name')->get();
 
-        $selectedSoftware = $request->integer('software');
-
-        if (! $softwareList->contains('id', $selectedSoftware)) {
-            $selectedSoftware = null;
-        }
+        // Pra-pilih perangkat lunak jika parameter ?software= dikirim
+        $selectedSoftwareId = $request->query('software');
 
         return view('tco.index', [
             'softwareList' => $softwareList,
-            'form' => [
-                'software' => $selectedSoftware,
-                'pc' => null,
-                'years' => null,
-                'migration_cost' => 0,
-            ],
+            'selectedSoftwareId' => $selectedSoftwareId,
             'result' => null,
         ]);
     }
 
     /**
-     * Menghitung estimasi penghematan biaya lisensi.
+     * Menghitung estimasi penghematan biaya.
      */
-    public function hitung(Request $request): View|RedirectResponse
+    public function hitung(Request $request): View
     {
-        $validator = Validator::make($request->all(), [
-            'software' => ['required', 'integer', 'exists:proprietary_software,id'],
-            'pc' => ['required', 'integer', 'between:1,100000'],
-            'years' => ['required', 'integer', 'between:1,10'],
-            'migration_cost' => ['nullable', 'numeric', 'min:0'],
+        $validated = $request->validate([
+            'software_id' => ['required', 'exists:proprietary_software,id'],
+            'jumlah_pc' => ['required', 'integer', 'min:1', 'max:100000'],
+            'jumlah_tahun' => ['required', 'integer', 'min:1', 'max:10'],
+            'biaya_migrasi' => ['nullable', 'numeric', 'min:0'],
         ], [
-            'software.required' => 'Pilih perangkat lunak berbayar terlebih dahulu.',
-            'software.integer' => 'Perangkat lunak berbayar tidak valid.',
-            'software.exists' => 'Perangkat lunak berbayar yang dipilih tidak ditemukan.',
-            'pc.required' => 'Jumlah PC wajib diisi.',
-            'pc.integer' => 'Jumlah PC harus berupa bilangan bulat.',
-            'pc.between' => 'Jumlah PC harus antara 1 sampai 100.000.',
-            'years.required' => 'Jumlah tahun wajib diisi.',
-            'years.integer' => 'Jumlah tahun harus berupa bilangan bulat.',
-            'years.between' => 'Jumlah tahun harus antara 1 sampai 10.',
-            'migration_cost.numeric' => 'Biaya migrasi/pelatihan harus berupa angka.',
-            'migration_cost.min' => 'Biaya migrasi/pelatihan tidak boleh negatif.',
-        ], [
-            'software' => 'perangkat lunak berbayar',
-            'pc' => 'jumlah PC',
-            'years' => 'jumlah tahun',
-            'migration_cost' => 'biaya migrasi/pelatihan',
+            'software_id.required' => 'Pilih perangkat lunak berbayar.',
+            'software_id.exists' => 'Perangkat lunak tidak ditemukan di database.',
+            'jumlah_pc.required' => 'Jumlah PC wajib diisi.',
+            'jumlah_pc.integer' => 'Jumlah PC harus berupa bilangan bulat.',
+            'jumlah_pc.min' => 'Jumlah PC minimal 1.',
+            'jumlah_pc.max' => 'Jumlah PC maksimal 100.000.',
+            'jumlah_tahun.required' => 'Jumlah tahun wajib diisi.',
+            'jumlah_tahun.integer' => 'Jumlah tahun harus berupa bilangan bulat.',
+            'jumlah_tahun.min' => 'Jumlah tahun minimal 1.',
+            'jumlah_tahun.max' => 'Jumlah tahun maksimal 10.',
+            'biaya_migrasi.numeric' => 'Biaya migrasi harus berupa angka.',
+            'biaya_migrasi.min' => 'Biaya migrasi tidak boleh negatif.',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()
-                ->route('tco.index')
-                ->withErrors($validator)
-                ->withInput();
-        }
+        $software = ProprietarySoftware::findOrFail($validated['software_id']);
+        $jumlahPc = (int) $validated['jumlah_pc'];
+        $jumlahTahun = (int) $validated['jumlah_tahun'];
+        $biayaMigrasi = (float) ($validated['biaya_migrasi'] ?? 0);
 
-        $validated = $validator->validated();
+        // Rumus perhitungan
+        $biayaLisensi = $software->price_per_year * $jumlahPc * $jumlahTahun;
+        $biayaFoss = $biayaMigrasi;
+        $penghematan = $biayaLisensi - $biayaFoss;
 
-        $software = ProprietarySoftware::findOrFail($validated['software']);
-
-        $pc = (int) $validated['pc'];
-        $years = (int) $validated['years'];
-        $migrationCost = (float) ($validated['migration_cost'] ?? 0);
-
-        $licenseCost = (float) $software->price_per_year * $pc * $years;
-        $alternativeCost = $migrationCost;
-        $savings = $licenseCost - $alternativeCost;
+        $softwareList = ProprietarySoftware::orderBy('name')->get();
 
         return view('tco.index', [
-            'softwareList' => ProprietarySoftware::orderBy('name')->get(),
-            'form' => [
-                'software' => $software->id,
-                'pc' => $pc,
-                'years' => $years,
-                'migration_cost' => $migrationCost,
-            ],
+            'softwareList' => $softwareList,
+            'selectedSoftwareId' => $validated['software_id'],
             'result' => [
-                'software' => $software,
-                'pc' => $pc,
-                'years' => $years,
-                'license_cost' => $licenseCost,
-                'alternative_cost' => $alternativeCost,
-                'savings' => $savings,
+                'software_name' => $software->name,
+                'biaya_lisensi' => $biayaLisensi,
+                'biaya_foss' => $biayaFoss,
+                'penghematan' => $penghematan,
             ],
+            'input' => $validated,
         ]);
     }
 }

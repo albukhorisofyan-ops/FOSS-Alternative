@@ -27,7 +27,7 @@ class AdminSuggestionTest extends TestCase
             ->assertOk()
             ->assertSee('GIMP')
             ->assertSee('Adobe Photoshop')
-            ->assertSee('Menunggu');
+            ->assertSee('Pending');
     }
 
     public function test_admin_can_approve_suggestion(): void

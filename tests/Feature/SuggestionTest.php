@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\ProprietarySoftware;
 use App\Models\Suggestion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -9,6 +11,23 @@ use Tests\TestCase;
 class SuggestionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $category = Category::create([
+            'name' => 'Desain Grafis',
+            'slug' => 'desain-grafis',
+        ]);
+
+        ProprietarySoftware::create([
+            'category_id' => $category->id,
+            'name' => 'Adobe Photoshop',
+            'vendor' => 'Adobe',
+            'price_per_year' => 3500000,
+        ]);
+    }
 
     public function test_guest_can_open_suggestion_form(): void
     {

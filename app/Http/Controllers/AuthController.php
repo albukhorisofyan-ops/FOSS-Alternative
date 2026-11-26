@@ -5,22 +5,23 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     /**
-     * Tampilkan formulir masuk admin.
+     * Menampilkan halaman formulir login admin.
      */
-    public function create(): View
+    public function showLogin(): View
     {
         return view('auth.login');
     }
 
     /**
-     * Proses percobaan masuk admin.
+     * Memproses percobaan login admin.
      */
-    public function store(Request $request): RedirectResponse
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -31,27 +32,31 @@ class AuthController extends Controller
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        if (! Auth::attempt($credentials)) {
-            return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Email atau kata sandi salah.']);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            $fallback = Route::has('admin.software.index')
+                ? route('admin.software.index')
+                : '/';
+
+            return redirect()->intended($fallback)->with('status', 'Berhasil masuk sebagai admin.');
         }
 
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('admin.home'));
+        return back()
+            ->withErrors(['email' => 'Email atau kata sandi salah.'])
+            ->onlyInput('email');
     }
 
     /**
-     * Keluarkan admin dan hapus sesi.
+     * Mengeluarkan admin dari sesi saat ini.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('status', 'Anda telah keluar.');
     }
 }
