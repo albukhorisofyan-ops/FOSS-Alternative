@@ -85,7 +85,7 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Lisensi
 
 - Kode program: [MIT](LICENSE)
-- Data direktori (daftar alternatif, deskripsi, panduan migrasi): CC BY-SA 4.0
+- Data direktori (daftar alternatif, deskripsi, panduan migrasi): [CC BY-SA 4.0](LICENSE-DATA.md)
 
 ## Kredit Tim Pengembang
 
