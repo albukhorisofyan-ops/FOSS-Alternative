@@ -91,7 +91,7 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Nama | NIM | Peran |
 |---|---|---|
-| (Nama) | NIM | Database dan fondasi |
-| (Nama) | NIM | Katalog dan pencarian |
-| (Nama) | NIM | Kalkulator penghematan |
-| (Nama) | NIM | Admin dan usulan |
+| Muhammad Fadil | 2441919016 | Database dan fondasi |
+| Muhammad Lutfi Rivani | 2441919037 | Katalog dan pencarian |
+| Muhammad Rizqi Zain | 2441919004 | Kalkulator penghematan |
+| Sofyan Al-Buqori Ramli | 2441919048 | Admin dan usulan |
